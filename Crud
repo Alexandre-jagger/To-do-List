@@ -1,0 +1,265 @@
+<template>
+  <v-app>
+    <v-container>
+      <v-toolbar flat>
+        <v-toolbar-title>Lista de Clientes</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn color="primary" @click="abrirDialogo">Novo cliente</v-btn>
+      </v-toolbar>
+
+      <v-data-table
+        :headers="colunas"
+        :items="clientes"
+        item-key="name"
+        :footer-props="{
+          itemsPerPageText: 'Número de itens na página'
+        }"
+      >
+        <template v-slot:[`item.actions`]="{ item }">
+          <v-icon small @click="editarCliente(item)">mdi-pencil</v-icon>
+          <v-icon small @click="excluirCliente(item)">mdi-delete</v-icon>
+        </template>
+
+        <template v-slot:[`no-data`]>
+          <v-btn color="secondary" @click="inicializar">Carregar Clientes</v-btn>
+        </template>
+      </v-data-table>
+
+      <v-dialog v-model="dialogo" max-width="600px">
+        <v-card>
+          <v-card-title>
+            <span class="text-h5">{{ tituloFormulario }}</span>
+          </v-card-title>
+
+          <v-card-text>
+            <v-container>
+              <v-row>
+                <v-col cols="12" md="10">
+                  <v-text-field
+                    id="nome"
+                    v-model="clienteEditado.name"
+                    label="Nome"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="10">
+                  <v-text-field
+                    v-model="clienteEditado.age"
+                    label="Idade"
+                    type="number"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="10">
+                  
+                  <v-text-field
+                    v-model="clienteEditado.plate"
+                    label="Placa"
+                    required
+                    maxlength="7" 
+                    @input="formatarPlaca"  
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="10">
+                  <v-select
+                    v-model="clienteEditado.model"
+                    :items="modelosCarro"
+                    label="Modelo do Carro"
+                    required
+                    item-value="value"
+                    item-text="text"
+                  >
+                    <template v-slot:selection="{ item }">
+                      <v-chip v-if="item" v-bind="attrs">
+                        {{ item.text }}
+                      </v-chip>
+                      <span v-else>Selecione um carro</span>
+                    </template>
+                  </v-select>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-card-text>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="blue" @click="fecharDialogo">Cancelar</v-btn>
+            <v-btn color="blue" @click="salvarCliente">Salvar</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-container>
+  </v-app>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      dialogo: false,
+      clientes: [],
+      clienteEditado: {
+        name: '',
+        age: null,
+        plate: '',
+        model: '',
+      },
+      indiceEditado: -1, 
+      tituloFormulario: 'Novo cliente',
+      colunas: [
+        { text: 'Nome', value: 'name' },
+        { text: 'Idade', value: 'age' },
+        { text: 'Placa do carro', value: 'plate' },
+        { text: 'Modelo do Carro', value: 'model' },
+        { text: 'Ações', value: 'actions', sortable: false },
+      ],
+      modelosCarro: [
+        { value: 'Haval H6', text: 'Haval H6' },
+        { value: 'Corsa', text: 'Corsa' },
+        { value: 'Fusca', text: 'Fusca' },
+        { value: 'Gol', text: 'Gol' },
+        { value: 'Celta', text: 'Celta' },
+        { value: 'Fiesta', text: 'Fiesta' },
+        { value: 'Uno', text: 'Uno' },
+        { value: 'Palio', text: 'Palio' },
+        { value: 'Corolla', text: 'Corolla' },
+        { value: 'Civic', text: 'Civic' },
+        { value: 'Sandero', text: 'Sandero' },
+        { value: 'HB20', text: 'HB20' },
+        { value: 'Renegade', text: 'Renegade' },
+        { value: 'Tracker', text: 'Tracker' },
+        { value: 'Kwid', text: 'Kwid' },
+        { value: 'T-Cross', text: 'T-Cross' },
+        { value: 'Creta', text: 'Creta' },
+        { value: 'Hilux', text: 'Hilux' },
+        { value: 'Ranger', text: 'Ranger' },
+        { value: 'S10', text: 'S10' },
+        { value: 'Fiat Toro', text: 'Fiat Toro' },
+        { value: 'Duster', text: 'Duster' },
+        { value: 'Nivus', text: 'Nivus' },
+        { value: 'Onix', text: 'Onix' },
+        { value: 'Sonic', text: 'Sonic' },
+        { value: 'Jetta', text: 'Jetta' },
+        { value: 'Polo', text: 'Polo' },
+        { value: 'Astra', text: 'Astra' },
+        { value: 'Edge', text: 'Edge' },
+        { value: 'Fusion', text: 'Fusion' },
+        { value: 'Sportage', text: 'Sportage' },
+        { value: 'HR-V', text: 'HR-V' },
+        { value: 'X-Trail', text: 'X-Trail' },
+        { value: 'EcoSport', text: 'EcoSport' },
+        { value: 'Chery Tiggo', text: 'Chery Tiggo' },
+        { value: 'Peugeot 208', text: 'Peugeot 208' },
+        { value: 'Peugeot 2008', text: 'Peugeot 2008' },
+        { value: 'Citroen C3', text: 'Citroen C3' },
+        { value: 'Mobi', text: 'Mobi' },
+        { value: 'Tiguan', text: 'Tiguan' },
+        { value: 'Doblò', text: 'Doblò' },
+        { value: 'Captur', text: 'Captur' },
+        { value: 'Palio Weekend', text: 'Palio Weekend' },
+        { value: 'Zafira', text: 'Zafira' },
+        { value: 'Montana', text: 'Montana' },
+        { value: 'Tucson', text: 'Tucson' },
+        { value: 'Chiron', text: 'Chiron' },
+        { value: 'A4', text: 'A4' },
+        { value: 'X1', text: 'X1' },
+        { value: 'Q3', text: 'Q3' },
+        { value: 'RS5', text: 'RS5' },
+        { value: 'Mercedes-Benz GLA', text: 'Mercedes-Benz GLA' },
+      ],
+    };
+  },
+  methods: {
+    inicializar() {
+      this.clientes = [
+        { name: 'Jão', age: 30, plate: 'ABC1234', model: 'Ford Fiesta' },
+        { name: 'Jubiscleia', age: 25, plate: 'DAS1212', model: 'Honda Civic' },
+      ];
+    },
+    abrirDialogo() {
+      this.dialogo = true;
+      this.reiniciarFormulario();
+    },
+    fecharDialogo() {
+      this.dialogo = false;
+    },
+    editarCliente(cliente) {
+      this.clienteEditado = { ...cliente };
+      this.indiceEditado = this.clientes.indexOf(cliente); 
+      this.tituloFormulario = 'Editar Cliente';
+      this.dialogo = true;
+    },
+    excluirCliente(cliente) {
+      const indice = this.clientes.indexOf(cliente);
+      if (indice > -1) {
+        this.clientes.splice(indice, 1);
+      }
+    },
+    validarNome() {
+      var nome = this.clienteEditado.name; 
+      var padrao = /^[a-zà-ú\s]+$/i;
+
+      if (padrao.test(nome)) {
+        return true;
+      } else {
+        alert("Nome deve conter apenas letras e espaços.");
+        return false;
+      }
+    },
+    //upercase placa
+    formatarPlaca() {
+      this.clienteEditado.plate = this.clienteEditado.plate
+        .toUpperCase()  
+    },
+
+    salvarCliente() {
+      if (!this.validarNome()) return;
+
+      if (!this.clienteEditado.age || this.clienteEditado.age <= 0) {
+        alert("Idade não pode ser 0.");
+        return;
+      }
+
+      //valida placa
+      
+      const plate = this.clienteEditado.plate.toUpperCase();
+      const regexPlate = /^[A-Z]{3}[0-9]{4}$/;
+      const regexPlateMerc = /^[A-Z]{3}[0-9]{1}[A-Z]{1}[0-9]{2}$/;
+
+      if (regexPlate.test(plate)) {
+        console.warn('Placa válida (padrão atual)');
+      } else if (regexPlateMerc.test(plate)) {
+        console.warn('Placa válida (padrão Mercosul)');
+      } else {
+        console.error('Placa padrão atual e Mercosul');
+        alert('Placa inválida, use o padão ABC1234 ou ABC1D23.');
+        return;
+      }
+
+      if (this.indiceEditado > -1) {
+        Object.assign(this.clientes[this.indiceEditado], this.clienteEditado);
+      } else {
+        this.clientes.push({ ...this.clienteEditado });
+      }
+      this.fecharDialogo();
+    },
+    reiniciarFormulario() {
+      this.clienteEditado = {
+        name: '',
+        age: null,
+        plate: '',
+        model: '',
+      };
+      this.indiceEditado = -1;
+      this.tituloFormulario = 'Novo Cliente';
+    },
+  },
+  created() {
+    this.inicializar();
+  },
+};
+</script>
+
+<style>
+@import '~vuetify/dist/vuetify.min.css';
+</style>
